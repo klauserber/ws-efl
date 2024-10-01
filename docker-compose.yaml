@@ -1,0 +1,48 @@
+---
+services:
+  restore:
+    image: isi006/restic-kubernetes:latest
+    hostname: ws-efl-restore
+    volumes:
+      - home:/data
+    environment:
+      RESTIC_REPOSITORY: ${RESTORE_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      RESTIC_HOST: localhost
+      RESTIC_RESTORE: "1"
+  devbox:
+    depends_on:
+      restore:
+        condition: service_completed_successfully
+    image: isi006/devopsbox-efl:latest
+    build:
+      context: .
+    command: sleep infinity
+    hostname: ws-efl-devbox
+    volumes:
+      - home:/home/coder
+      - /var/run/docker.sock:/var/run/docker.sock
+  backup:
+    image: isi006/restic-kubernetes:2.6.0
+    depends_on:
+      restore:
+        condition: service_completed_successfully
+    hostname: ws-efl-backup
+    volumes:
+      - home:/data
+    environment:
+      RESTIC_REPOSITORY: ${BACKUP_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD}
+      BACKUP_CRON: "*/15 * * * *"
+      RESTIC_FORGET_ARGS: "--keep-last 12 --keep-daily 7 --keep-weekly 4 --keep-monthly 3 --keep-yearly 100 --prune"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      REFRESH_INTERVAL: 3600
+      RESTIC_HOST: localhost
+      RESTIC_BACKUP_ON_EXIT: "0"
+volumes:
+  home: {}
