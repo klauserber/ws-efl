@@ -37,6 +37,7 @@ RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" apt-ge
     bash-completion \
     sipcalc \
     restic \
+    tini \
     zsh && \
   add-apt-repository --yes --update ppa:ansible/ansible && \
   apt install -y \
@@ -164,3 +165,7 @@ ENV PATH=${PATH}:${HOME}/.local/bin:${HOME}/bin
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 ENV LANGUAGE=en_US:en
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
