@@ -52,12 +52,6 @@ RUN curl -s https://raw.githubusercontent.com/docker/docker-ce/master/components
 # ##versions: https://hub.docker.com/r/docker/buildx-bin/tags
 COPY --from=docker/buildx-bin:0.17.1 /buildx /usr/libexec/docker/cli-plugins/docker-buildx
 
-# COPY requirements.txt /tmp/
-
-# RUN set -e; \
-#   pip3 install --default-timeout=180 -r /tmp/requirements.txt --ignore-installed PyYAML; \
-#   rm /tmp/requirements.txt
-
 # RUN set -e; \
 #   ansible-galaxy install -p /usr/share/ansible/collections -r /tmp/ansible-requirements.yml; \
 #   rm /tmp/requirements.txt /tmp/ansible-requirements.yml
@@ -111,6 +105,16 @@ RUN set -e; \
   cd /tmp; \
   rm -rf kubent
 
+# ##versions: https://github.com/hashicorp/terraform/releases
+ARG TERRAFORM_VERSION=1.9.7
+RUN set -e; \
+  cd /tmp; \
+  curl -Ss -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${TARGETOS}_${TARGETARCH}.zip; \
+  unzip terraform.zip; \
+  mv terraform /usr/local/bin/; \
+  chmod +x /usr/local/bin/terraform; \
+  rm terraform.zip
+
 # install azure-cli current version
 # RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
@@ -132,9 +136,7 @@ RUN set -e; \
 #   install -m 755 flux /usr/local/bin/flux; \
 #   rm -rf flux_${FLUX_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz flux
 
-
-# COPY helpers /helpers
-# COPY bin/* /usr/local/bin/
+COPY bin/* /usr/local/bin/
 
 RUN userdel -r ubuntu && \
     useradd coder \
@@ -145,12 +147,6 @@ RUN userdel -r ubuntu && \
       echo "coder ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd && \
       usermod -aG root coder
 
-# RUN mkdir /run/sshd
-
-# ENV LC_ALL=C.UTF-8
-# ENV LANG=C.UTF-8
-# ENV LANGUAGE=en_US:en
-
 RUN mkdir -p /pyenv && chown coder:coder /pyenv
 
 USER coder
@@ -160,7 +156,7 @@ RUN python3 -m venv /pyenv && \
     . /pyenv/bin/activate && \
     pip3 install -r /pyenv/requirements.txt -i https://mirrors.sustech.edu.cn/pypi/web/simple
 
-ENV PATH=${PATH}:${HOME}/.local/bin:${HOME}/bin
+ENV PATH=${PATH}:/home/coder/.local/bin:/home/coder/bin
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
