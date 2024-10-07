@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 ARG TARGETOS=linux
 
 RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" apt-get install -y \
@@ -17,6 +17,7 @@ RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" apt-ge
     python3-google-auth \
     python3-hcloud \
     python3-openshift \
+    python3-passlib \
     unzip \
     zip \
     iputils-ping \
@@ -106,7 +107,7 @@ RUN set -e; \
   rm -rf kubent
 
 # ##versions: https://github.com/hashicorp/terraform/releases
-ARG TERRAFORM_VERSION=1.9.7
+ARG TERRAFORM_VERSION=1.5.7
 RUN set -e; \
   cd /tmp; \
   curl -Ss -o terraform.zip https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_${TARGETOS}_${TARGETARCH}.zip; \
@@ -115,7 +116,15 @@ RUN set -e; \
   chmod +x /usr/local/bin/terraform; \
   rm terraform.zip
 
-# install azure-cli current version
+# ##versions: https://github.com/opentofu/opentofu/releases
+ARG TOFU_VERSION=1.8.3
+RUN set -e; \
+  cd /tmp; \
+  curl -LSs -o tofu.tar.gz https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz; \
+  tar xf tofu.tar.gz -C /usr/local/bin/; \
+  rm ./tofu.tar.gz
+
+  # install azure-cli current version
 # RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
 # # ##versions: https://github.com/bitnami-labs/sealed-secrets/releases

@@ -2,5 +2,6 @@
   "dockerComposeFile": "../docker-compose.yaml",
   "service": "devbox",
   "runServices": ["restore", "devbox", "backup"],
-  "workspaceFolder": "/home/coder"
+  "workspaceFolder": "/home/coder",
+  "remoteUser": "coder"
 }
