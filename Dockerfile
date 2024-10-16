@@ -40,6 +40,7 @@ RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" apt-ge
     restic \
     tini \
     netcat-openbsd \
+    hugo \
     zsh && \
   add-apt-repository --yes --update ppa:ansible/ansible && \
   apt install -y \
