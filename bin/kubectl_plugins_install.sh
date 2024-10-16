@@ -17,3 +17,4 @@ PATH=${KREW_ROOT:-$HOME/.krew}/bin:$PATH
 kubectl krew install ctx ns
 
 echo 'source <(kubectl completion bash)' >> ~/.bashrc
+echo 'source /etc/bash_completion' >> ~/.bashrc
