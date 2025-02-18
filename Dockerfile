@@ -79,12 +79,12 @@ RUN set -e; \
     chmod +x /usr/local/bin/kubectl
 
 # Install awscli current version
-# RUN set -e; \
-#   cd /tmp; \
-#   curl -LSs -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip; \
-#   unzip awscliv2.zip; \
-#   ./aws/install; \
-#   rm -rf ./aws awscliv2.zip;
+RUN set -e; \
+  cd /tmp; \
+  curl -LSs -o awscliv2.zip https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip; \
+  unzip awscliv2.zip; \
+  ./aws/install; \
+  rm -rf ./aws awscliv2.zip;
 
 # https://cloud.google.com/sdk/docs/release-notes
 # ARG GCLOUD_CLI_VERSION=494.0.0
@@ -146,6 +146,25 @@ RUN set -e; \
 #   tar -xzf flux_${FLUX_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz; \
 #   install -m 755 flux /usr/local/bin/flux; \
 #   rm -rf flux_${FLUX_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz flux
+
+# ##versions: https://github.com/golang/go/tags
+ARG GOLANG_VERSION=1.23.4
+RUN set -e; \
+  curl -LSs -o /tmp/golang.tar.gz https://golang.org/dl/go${GOLANG_VERSION}.${TARGETOS}-${TARGETARCH}.tar.gz; \
+  tar -C /usr/local -xzf /tmp/golang.tar.gz; \
+  rm /tmp/golang.tar.gz; \
+  echo "PATH=\$PATH:/usr/local/go/bin" >> /etc/bash.bashrc;
+
+# ##versions: https://github.com/derailed/k9s/releases
+ARG K9S_VERSION=0.32.7
+RUN set -e; \
+  mkdir -p /tmp/k9s; \
+  cd /tmp/k9s; \
+  curl -LSs -o k9s.tar.gz https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_${TARGETARCH}.tar.gz; \
+  tar xzf k9s.tar.gz; \
+  mv k9s /usr/local/bin/; \
+  cd /tmp; \
+  rm -rf k9s
 
 COPY bin/* /usr/local/bin/
 
