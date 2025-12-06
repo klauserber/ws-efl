@@ -191,6 +191,12 @@ RUN set -e; \
   tar xzf /tmp/hcloud-upload-image.tar.gz -C /usr/local/bin hcloud-upload-image; \
   rm /tmp/hcloud-upload-image.tar.gz
 
+# ##version: https://github.com/siderolabs/talos/releases
+ARG TALOSCTL_VERSION=1.11.5
+RUN set -e; \
+  curl -LSs -o /usr/local/bin/talosctl https://github.com/siderolabs/talos/releases/download/v${TALOSCTL_VERSION}/talosctl-${TARGETOS}-${TARGETARCH}; \
+  chmod +x /usr/local/bin/talosctl
+
 COPY bin/* /usr/local/bin/
 
 RUN userdel -r ubuntu && \
