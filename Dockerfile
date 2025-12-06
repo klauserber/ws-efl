@@ -175,6 +175,22 @@ RUN set -e; \
   cd /tmp; \
   rm -rf k9s
 
+# ##version: https://github.com/hetznercloud/cli/releases
+ARG HCLOUD_VERSION=1.57.0
+RUN set -e; \
+  curl -LSs -o /tmp/hcloud.tar.gz https://github.com/hetznercloud/cli/releases/download/v${HCLOUD_VERSION}/hcloud-${TARGETOS}-${TARGETARCH}.tar.gz; \
+  tar xzf /tmp/hcloud.tar.gz -C /usr/local/bin hcloud; \
+  rm /tmp/hcloud.tar.gz
+
+# ##version: https://github.com/apricote/hcloud-upload-image/releases
+ARG HCLOUD_UPLOAD_IMAGE_VERSION=1.2.0
+RUN set -e; \
+  ARCH=${TARGETARCH}; \
+  if [ "$ARCH" = "amd64" ]; then ARCH="x86_64"; fi; \
+  curl -LSs -o /tmp/hcloud-upload-image.tar.gz https://github.com/apricote/hcloud-upload-image/releases/download/v${HCLOUD_UPLOAD_IMAGE_VERSION}/hcloud-upload-image_Linux_${ARCH}.tar.gz; \
+  tar xzf /tmp/hcloud-upload-image.tar.gz -C /usr/local/bin hcloud-upload-image; \
+  rm /tmp/hcloud-upload-image.tar.gz
+
 COPY bin/* /usr/local/bin/
 
 RUN userdel -r ubuntu && \
