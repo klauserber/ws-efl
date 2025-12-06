@@ -41,19 +41,23 @@ RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="Europe/Berlin" apt-ge
     tini \
     netcat-openbsd \
     hugo \
+    groff \
     zsh && \
+  wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com noble main" | tee /etc/apt/sources.list.d/hashicorp.list && \
   add-apt-repository --yes --update ppa:ansible/ansible && \
   apt install -y \
     ansible-core \
     ansible-lint \
+    packer \
  && rm -rf /var/lib/apt/lists/*
 
 # ##version: https://hub.docker.com/_/docker/tags
-COPY --from=docker:27.3.1-cli /usr/local/bin/docker /usr/local/bin/docker-compose /usr/local/bin/
+COPY --from=docker:29.1.2-cli /usr/local/bin/docker /usr/local/bin/docker-compose /usr/local/bin/
 RUN curl -s https://raw.githubusercontent.com/docker/docker-ce/master/components/cli/contrib/completion/bash/docker -o /etc/bash_completion.d/docker.sh
 
 # ##versions: https://hub.docker.com/r/docker/buildx-bin/tags
-COPY --from=docker/buildx-bin:0.17.1 /buildx /usr/libexec/docker/cli-plugins/docker-buildx
+COPY --from=docker/buildx-bin:0.30.1 /buildx /usr/libexec/docker/cli-plugins/docker-buildx
 
 # RUN set -e; \
 #   ansible-galaxy install -p /usr/share/ansible/collections -r /tmp/ansible-requirements.yml; \
@@ -61,7 +65,7 @@ COPY --from=docker/buildx-bin:0.17.1 /buildx /usr/libexec/docker/cli-plugins/doc
 
 
 # ##versions: https://github.com/helm/helm/releases
-ARG HELM_VERSION=3.16.1
+ARG HELM_VERSION=3.19.2
 RUN set -e; \
   cd /tmp; \
   curl -Ss -o helm.tar.gz https://get.helm.sh/helm-v${HELM_VERSION}-${TARGETOS}-${TARGETARCH}.tar.gz; \
@@ -71,7 +75,7 @@ RUN set -e; \
   rm -rf ${TARGETOS}-${TARGETARCH} helm.tar.gz
 
 # ##versions: https://github.com/kubernetes/kubernetes/releases
-ARG KUBECTL_VERSION=1.31.1
+ARG KUBECTL_VERSION=1.34.2
 RUN set -e; \
     cd /tmp; \
     curl -sLO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/${TARGETOS}/${TARGETARCH}/kubectl"; \
@@ -87,15 +91,15 @@ RUN set -e; \
   rm -rf ./aws awscliv2.zip;
 
 # https://cloud.google.com/sdk/docs/release-notes
-# ARG GCLOUD_CLI_VERSION=494.0.0
-# RUN set -e; \
-#   if [ "${TARGETARCH}" = "amd64" ]; then TARGETARCH="x86_64"; fi; \
-#   if [ "${TARGETARCH}" = "arm64" ]; then TARGETARCH="arm"; fi; \
-#   curl -sSL -o /tmp/google-cloud-sdk.tar.gz https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_CLI_VERSION}-${TARGETOS}-${TARGETARCH}.tar.gz; \
-#   tar -C /usr/local -xzf /tmp/google-cloud-sdk.tar.gz; \
-#   rm /tmp/google-cloud-sdk.tar.gz; \
-#   /usr/local/google-cloud-sdk/install.sh --quiet; \
-#   /usr/local/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin --quiet
+ARG GCLOUD_CLI_VERSION=548.0.0
+RUN set -e; \
+  if [ "${TARGETARCH}" = "amd64" ]; then TARGETARCH="x86_64"; fi; \
+  if [ "${TARGETARCH}" = "arm64" ]; then TARGETARCH="arm"; fi; \
+  curl -sSL -o /tmp/google-cloud-sdk.tar.gz https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-${GCLOUD_CLI_VERSION}-${TARGETOS}-${TARGETARCH}.tar.gz; \
+  tar -C /usr/local -xzf /tmp/google-cloud-sdk.tar.gz; \
+  rm /tmp/google-cloud-sdk.tar.gz; \
+  /usr/local/google-cloud-sdk/install.sh --quiet; \
+  /usr/local/google-cloud-sdk/bin/gcloud components install gke-gcloud-auth-plugin --quiet
 
 # ##versions: https://github.com/doitintl/kube-no-trouble/releases
 ARG KUBENT_VERSION=0.7.3
@@ -119,12 +123,17 @@ RUN set -e; \
   rm terraform.zip
 
 # ##versions: https://github.com/opentofu/opentofu/releases
-ARG TOFU_VERSION=1.8.3
+ARG TOFU_VERSION=1.10.7
 RUN set -e; \
   cd /tmp; \
   curl -LSs -o tofu.tar.gz https://github.com/opentofu/opentofu/releases/download/v${TOFU_VERSION}/tofu_${TOFU_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz; \
   tar xf tofu.tar.gz -C /usr/local/bin/; \
   rm ./tofu.tar.gz
+
+# ##versions: https://github.com/loft-sh/vcluster/releases
+ARG VCLUSTER_VERSION=0.26.0
+RUN curl -L -o vcluster "https://github.com/loft-sh/vcluster/releases/download/${VCLUSTER_VERSION}/vcluster-linux-arm64" && \
+  sudo install -c -m 0755 vcluster /usr/local/bin && rm -f vcluster
 
   # install azure-cli current version
 # RUN curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
@@ -148,7 +157,7 @@ RUN set -e; \
 #   rm -rf flux_${FLUX_VERSION}_${TARGETOS}_${TARGETARCH}.tar.gz flux
 
 # ##versions: https://github.com/golang/go/tags
-ARG GOLANG_VERSION=1.23.4
+ARG GOLANG_VERSION=1.25.5
 RUN set -e; \
   curl -LSs -o /tmp/golang.tar.gz https://golang.org/dl/go${GOLANG_VERSION}.${TARGETOS}-${TARGETARCH}.tar.gz; \
   tar -C /usr/local -xzf /tmp/golang.tar.gz; \
@@ -156,7 +165,7 @@ RUN set -e; \
   echo "PATH=\$PATH:/usr/local/go/bin" >> /etc/bash.bashrc;
 
 # ##versions: https://github.com/derailed/k9s/releases
-ARG K9S_VERSION=0.32.7
+ARG K9S_VERSION=0.50.16
 RUN set -e; \
   mkdir -p /tmp/k9s; \
   cd /tmp/k9s; \
@@ -186,7 +195,7 @@ RUN python3 -m venv /pyenv && \
     . /pyenv/bin/activate && \
     pip3 install -r /pyenv/requirements.txt -i https://mirrors.sustech.edu.cn/pypi/web/simple
 
-ENV PATH=${PATH}:/home/coder/.local/bin:/home/coder/bin
+ENV PATH=${PATH}:/home/coder/.local/bin:/home/coder/bin:/usr/local/google-cloud-sdk/bin
 
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
