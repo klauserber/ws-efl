@@ -197,6 +197,18 @@ RUN set -e; \
   curl -LSs -o /usr/local/bin/talosctl https://github.com/siderolabs/talos/releases/download/v${TALOSCTL_VERSION}/talosctl-${TARGETOS}-${TARGETARCH}; \
   chmod +x /usr/local/bin/talosctl
 
+# install crane
+# ##version: https://github.com/google/go-containerregistry/releases
+ARG CRANE_VERSION=0.20.6
+RUN set -e; \
+  if [ "$TARGETARCH" = "amd64" ]; then TARGETARCH="x86_64"; fi; \
+  mkdir -p /tmp/crane; \
+  cd /tmp/crane; \
+  curl -sL "https://github.com/google/go-containerregistry/releases/download/v${CRANE_VERSION}/go-containerregistry_Linux_${TARGETARCH}.tar.gz" > go-containerregistry.tar.gz; \
+  tar xzf go-containerregistry.tar.gz; \
+  mv crane /usr/local/bin/; \
+  rm -rf /tmp/crane
+
 COPY bin/* /usr/local/bin/
 
 RUN userdel -r ubuntu && \
